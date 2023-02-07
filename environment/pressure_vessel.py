@@ -1,19 +1,22 @@
 import numpy as np
 from .base_env import IBaseEnv
+from .individual import Individual
 
 
 class PressureVessel(IBaseEnv):
     THICKNESS_STEP = 0.0625
 
-    def fitness_function(self, individual: np.ndarray):
-        x1 = np.round(individual[:, 0] / self.THICKNESS_STEP, 0) * self.THICKNESS_STEP
-        x2 = np.round(individual[:, 1] / self.THICKNESS_STEP, 0) * self.THICKNESS_STEP
-        x3 = individual[:, 2]
-        x4 = individual[:, 3]
-        return self.THICKNESS_STEP * x1 * x3 * x4 + 1.7781 * x2 * x3 ** 2 + 3.1661 * x1 ** 2 * x4 + 19.84 * x1 ** 2 * x3
+    @classmethod
+    def fitness_function(cls, individual: np.ndarray):
+        x1 = np.round(individual[0] / cls.THICKNESS_STEP, 0) * cls.THICKNESS_STEP
+        x2 = np.round(individual[1] / cls.THICKNESS_STEP, 0) * cls.THICKNESS_STEP
+        x3 = individual[2]
+        x4 = individual[3]
+        return cls.THICKNESS_STEP * x1 * x3 * x4 + 1.7781 * x2 * x3 ** 2 + 3.1661 * x1 ** 2 * x4 + 19.84 * x1 ** 2 * x3
 
-    def constraints(self, individual):
-        gs = self.g(individual)
+    @classmethod
+    def constraints(cls, individual):
+        gs = cls.g(individual)
         res = []
         # loop over each individual
         for ind in gs:
@@ -47,7 +50,8 @@ class PressureVessel(IBaseEnv):
 
         return np.asarray(res)
 
-    def g(self, individual):
+    @classmethod
+    def g(cls, individual):
         x1 = individual[:, 0]
         x2 = individual[:, 1]
         x3 = individual[:, 2]
@@ -58,5 +62,3 @@ class PressureVessel(IBaseEnv):
         g3 = - np.pi * x3**2 * x4 - (4 * np.pi / 3) * x3**3 + 1296000
         g4 = x4 - 240
         return np.array([g1, g2, g3, g4]).T
-
-
