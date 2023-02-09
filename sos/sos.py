@@ -23,8 +23,9 @@ class SOS:
         self.best = None
         self.environment = environment
         self.create_individual = individual_class
+        self.q_mean_fitness = []
+        self.q_best_fitness = []
 
-        self.goods_threshold = int(self.population_size * self.GOODS_THRESHOLD)
 
     def float_rand(self, lower_bound, upper_bound, size=None):
         return lower_bound + ((upper_bound - lower_bound) * np.random.random(size))
@@ -32,7 +33,6 @@ class SOS:
     def generate_population(self):
         population = self.float_rand(self.l_bound, self.u_bound, (self.population_size, self.fitness_vector_size))
         self.population = [self.create_individual(p, self.environment) for p in population]
-        # self.best = sorted(self.population, key=lambda x: x.fitness_value)[0]
 
     def mutualism(self, a_index, population):
         b_index = np.random.choice(np.delete(np.arange(len(population)), a_index))
@@ -68,7 +68,8 @@ class SOS:
         index = np.random.randint(0, self.fitness_vector_size)
         parasite[index] = self.float_rand(self.l_bound, self.u_bound)[index]
         parasite = self.create_individual(parasite, self.environment)
-        population[b_index] = parasite if (parasite.fitness_value <= b.fitness_value and parasite.constraints[0] == 0) else b
+        population[b_index] = parasite if (
+                    parasite.fitness_value <= b.fitness_value and parasite.constraints[0] == 0) else b
         return population
 
     def evaluate_population(self):
@@ -90,6 +91,9 @@ class SOS:
         self.best = sorted(self.good_population, key=lambda x: x.fitness_value)[0]
         return goods, bads
 
+    def calc_mean_fitness(self, population):
+        return np.mean([ind.fitness_value for ind in population])
+
     def proceed(self, steps):
         for j in range(1, steps + 1):
             self.evaluate_population()
@@ -107,3 +111,5 @@ class SOS:
                 print('{0}/{1} Current population:'.format(j, steps))
                 print(self.best)
             self.population = self.good_population + self.bad_population
+            self.q_mean_fitness.append(self.calc_mean_fitness(self.good_population))
+            self.q_best_fitness.append(self.best.fitness_value)
